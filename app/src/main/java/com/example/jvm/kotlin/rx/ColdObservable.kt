@@ -1,5 +1,9 @@
 package com.example.jvm.kotlin.rx
 
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
+import io.reactivex.rxjava3.disposables.Disposable
+
 fun main() {
     coldEmitterExample()
 }
