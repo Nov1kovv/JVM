@@ -1,66 +1,140 @@
 package com.example.jvm.kotlin.rx
 
-import io.reactivex.rxjava3.core.Observer
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import android.annotation.SuppressLint
+import io.reactivex.rxjava3.subjects.*
+import io.reactivex.rxjava3.observers.DisposableObserver
 
 fun main() {
-    PublicSubjectExample()
+    publishSubjectExample()
+    behaviorSubjectExample()
+    replaySubjectExample()
+    asyncSubjectExample()
+    unicastSubjectExample()
+}
+//Subject — это двунаправленный объект, который: сам принимает данные (onNext() и т.д.),
+// и раздаёт их подписчикам, как Observable.
+// PublishSubject: Не хранит прошлые значения. Подписчики получают только события после подписки.
+fun publishSubjectExample() {
+    val subject = PublishSubject.create<String>()
+
+    val disposable1 = subject.subscribeWith(object : DisposableObserver<String>() {
+        override fun onNext(item: String) {
+            println("PublishSubject → Subscriber 1 received: $item")
+        }
+
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
+
+    subject.onNext("First")
+
+    val disposable2 = subject.subscribeWith(object : DisposableObserver<String>() {
+        override fun onNext(item: String) {
+            println("PublishSubject → Subscriber 2 received: $item")
+        }
+
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
+
+    subject.onNext("Second")
+
+    disposable1.dispose()
+    disposable2.dispose()
 }
 
-// Subject - это Observable и Observer одновременноо
-// Используется, когда нужно эмиттировать значения вручную и при этом позволить другим подписываться на эти значения
+// BehaviorSubject: Хранит последнее значение. Новый подписчик получает его сразу.
+fun behaviorSubjectExample() {
+    val subject = BehaviorSubject.createDefault("Initial")
 
-// Пример с Subject (PublishSubject)
-fun PublicSubjectExample() {
-    val subject: PublishSubject<String> = PublishSubject.create()
-
-    val observer1: Observer<String> = object : Observer<String> {
-        override fun onComplete() {
-            println("Observer 1: Completed")
-        }
-
+    val disposable1 = subject.subscribeWith(object : DisposableObserver<String>() {
         override fun onNext(item: String) {
-            println("Observer 1: Received $item")
+            println("BehaviorSubject → Subscriber 1 received: $item")
         }
 
-        override fun onError(e: Throwable) {
-            println("Observer 1: Error - ${e.message}")
-        }
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
 
-        override fun onSubscribe(d: Disposable) {
-            println("Observer 1: Subscribed to Subject")
-        }
-    }
+    subject.onNext("Update 1")
 
-    val observer2: Observer<String> = object : Observer<String> {
-        override fun onComplete() {
-            println("Observer 2: Completed")
-        }
-
+    val disposable2 = subject.subscribeWith(object : DisposableObserver<String>() {
         override fun onNext(item: String) {
-            println("Observer 2: Received $item")
+            println("BehaviorSubject → Subscriber 2 received: $item")
         }
 
-        override fun onError(e: Throwable) {
-            println("Observer 2: Error - ${e.message}")
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
+
+    subject.onNext("Update 2")
+
+    disposable1.dispose()
+    disposable2.dispose()
+}
+
+// ReplaySubject: Хранит всю историю (либо ограниченный размер). Все подписчики получают кэш.
+fun replaySubjectExample() {
+    val subject = ReplaySubject.createWithSize<String>(2)
+
+    subject.onNext("One")
+    subject.onNext("Two")
+    subject.onNext("Three") // "One" вытесняется, остаются "Two", "Three"
+
+    val disposable = subject.subscribeWith(object : DisposableObserver<String>() {
+        override fun onNext(item: String) {
+            println("ReplaySubject → Subscriber received: $item")
         }
 
-        override fun onSubscribe(d: Disposable) {
-            println("Observer 2: Subscribed to Subject")
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
+
+    subject.onNext("Four")
+
+    disposable.dispose()
+}
+
+// AsyncSubject: Передаёт только последнее значение, и только после onComplete().
+fun asyncSubjectExample() {
+    val subject = AsyncSubject.create<String>()
+
+    val disposable = subject.subscribeWith(object : DisposableObserver<String>() {
+        override fun onNext(item: String) {
+            println("AsyncSubject → Subscriber received: $item")
         }
-    }
 
-    // Подписка первого наблюдателя
-    subject.subscribe(observer1)
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {
+            println("AsyncSubject → Subscriber complete")
+        }
+    })
 
-    // Эмиттируем данные
-    subject.onNext("Subject Value 1")
-    subject.onNext("Subject Value 2")
-
-    // Подписка второго наблюдателя, получит только те данные, которые будут эмиттированы после подписки
-    subject.subscribe(observer2)
-
-    subject.onNext("Subject Value 3")
+    subject.onNext("Alpha")
+    subject.onNext("Beta")
     subject.onComplete()
+
+    disposable.dispose()
+}
+
+// UnicastSubject:  используется для отправки значений только одному подписчикус
+fun unicastSubjectExample() {
+    val subject = UnicastSubject.create<String>()
+
+    subject.onNext("Pre-Subscribe 1")
+    subject.onNext("Pre-Subscribe 2")
+
+    val disposable = subject.subscribeWith(object : DisposableObserver<String>() {
+        override fun onNext(item: String) {
+            println("UnicastSubject → Subscriber received: $item")
+        }
+
+        override fun onError(e: Throwable) {}
+        override fun onComplete() {}
+    })
+
+    subject.onNext("After Subscribe")
+    subject.onComplete()
+
+    disposable.dispose()
 }

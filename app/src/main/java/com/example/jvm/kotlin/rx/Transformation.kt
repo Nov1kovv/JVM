@@ -36,7 +36,7 @@ fun toListObservable() {
         .subscribe(observer)
 }
 
-// map: преобразуем каждый элемент
+// map преобразуем каждый элемент
 fun mapObservable() {
     val observable: Observable<String> = Observable.just("M", "C", "V", "I")
 
@@ -63,11 +63,11 @@ fun mapObservable() {
     }.subscribe(observer)
 }
 
-// flatMap: "вытаскиваем" вложенные Observable и объединяем в один поток
+// flatMap вытаскиваем вложенные Observable и объединяем в один поток
 fun flatMapObservable() {
-    val oleg = Student(BehaviorSubject.createDefault(80))
+    val oleg = Student(BehaviorSubject.createDefault(80)) //BehaviorSubject это поток который при подписке сразу выдаёт последнее значение.
     val ivan = Student(BehaviorSubject.createDefault(90))
-    val studentStream = PublishSubject.create<Student>()
+    val studentStream = PublishSubject.create<Student>() //Создаю поток студентов, PublishSubject начинает эмитить элементы только после подписки.
 
     val observer: Observer<Int> = object : Observer<Int> {
         override fun onSubscribe(d: Disposable) {
@@ -98,7 +98,7 @@ fun flatMapObservable() {
     ivan.score.onNext(100)
 }
 
-// switchMap: следим только за последним вложенным Observable
+// switchMap следим только за последним вложенным Observable
 fun switchMapObservable() {
     val ryan = Student(BehaviorSubject.createDefault(80))
     val charlotte = Student(BehaviorSubject.createDefault(90))

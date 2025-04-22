@@ -25,7 +25,8 @@ fun ThreadExampleWithSchedulers() {
     // операторы для работы в разных потоках
     source
         .subscribeOn(Schedulers.io()) // генерация данных будет происходить в IO-потоке
-        .observeOn(Schedulers.computation()) // обработка map будет в другом потоке
+        // subscribeOn указывает, в каком потоке будет происходить подписка и генерация данных.
+        .observeOn(Schedulers.computation()) // observeOn переключает поток для следующих операций.
         .map(object : Function<Int, Int> {
             override fun apply(value: Int): Int {
                 println("Map: обрабатываем $value на потоке ${Thread.currentThread().name}")
