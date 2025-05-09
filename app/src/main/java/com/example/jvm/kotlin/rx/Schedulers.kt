@@ -7,27 +7,27 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 
 fun main() {
     ioSchedulerExample()
-    computationSchedulerExample()
-    trampolineSchedulerExample()
-    newThreadSchedulerExample()
-    singleSchedulerExample()
+//    computationSchedulerExample()
+//    trampolineSchedulerExample()
+//    newThreadSchedulerExample()
+//    singleSchedulerExample()
 }
 
 
 // io(Input/Output): Поток для работы с IO операциями чтения,запись файлов, сетевые запросы)
-//Использует пул потоков, который автоматически масштабируется в зависимости от числа активных задач
+//Использует кэшированный пул потоков, который автоматически масштабируется в зависимости от числа активных задач
 //Для задач, которые могут блокировать поток, например, операции чтения с диска или обращения к удаленному серверу.
 fun ioSchedulerExample() {
     val observable: Observable<String> = Observable.just("Network Request", "File Read")
-        .subscribeOn(Schedulers.io())
+        .subscribeOn(Schedulers.io()) //Управляет тем, на каком потоке начнётся выполнение всей цепочки, работает только один раз
 
     val observer: Observer<String> = object : Observer<String> {
         override fun onSubscribe(d: Disposable) {
-            println("Subscribed to Observable with IO scheduler")
+            println("Subscribed to Observable with IO scheduler(: ${Thread.currentThread().name})")
         }
 
         override fun onNext(item: String) {
-            println("Performed on IO thread: $item")
+            println("Performed on IO thread: $item : ${Thread.currentThread().name})")
         }
 
         override fun onError(e: Throwable) {
@@ -35,20 +35,43 @@ fun ioSchedulerExample() {
         }
 
         override fun onComplete() {
-            println("Completed IO scheduler stream")
+            println("Completed IO scheduler stream : ${Thread.currentThread().name})")
         }
-    }
 
+    }
     observable.subscribe(observer)
+    Observable.just("Network Request", "File Read")
+        .subscribeOn(Schedulers.io())
+        .observeOn(Schedulers.computation())// указывает, на каком потоке будут выполняться все последующие операторы и действия подписчика.
+        .subscribe(object : Observer<String> {
+            override fun onSubscribe(d: Disposable) {
+                println("Subscribed to Observable with computation scheduler (Thread: ${Thread.currentThread().name}")
+            }
+
+            override fun onNext(item: String) {
+                println("Computation: $item (Thread: ${Thread.currentThread().name}")
+            }
+
+            override fun onError(e: Throwable) {
+                println("Computation Error: ${e.message}")
+            }
+
+            override fun onComplete() {
+                println("Computation stream complete (Thread: ${Thread.currentThread().name}")
+            }
+        })
+    Thread.sleep(500)
 }
 
+
+
 // computation: Поток для тяжелых вычислений например, математика, обработка данных
-// Использует фиксированное количество потоков, которое соответствует количеству доступных процессоров.
+// Использует фиксированное количество потоков, которое соответствует количеству доступных процессоров на процессоре компьютера.
 // Оптимизирован для задач, которые не блокируют потоки, но требуют значительных вычислительных ресурсов.
 
 fun computationSchedulerExample() {
     val observable: Observable<String> = Observable.just("Heavy Computation 1", "Heavy Computation 2")
-        .subscribeOn(Schedulers.computation())
+        .subscribeOn(Schedulers.computation()) //Управляет тем, на каком потоке начнётся выполнение всей цепочки, работает только один раз
 
     val observer: Observer<String> = object : Observer<String> {
         override fun onSubscribe(d: Disposable) {
@@ -76,7 +99,7 @@ fun computationSchedulerExample() {
 
 fun trampolineSchedulerExample() {
     val observable: Observable<String> = Observable.just("Task 1", "Task 2")
-        .subscribeOn(Schedulers.trampoline()) // Выполняем задачу в текущем потоке
+        .subscribeOn(Schedulers.trampoline()) // Управляет тем, на каком потоке начнётся выполнение всей цепочки, работает только один раз
 
     val observer: Observer<String> = object : Observer<String> {
         override fun onSubscribe(d: Disposable) {
@@ -102,7 +125,7 @@ fun trampolineSchedulerExample() {
 // Каждый элемент Observable обрабатывается в новом потоке.
 fun newThreadSchedulerExample() {
     val observable: Observable<String> = Observable.just("Task 1", "Task 2")
-        .subscribeOn(Schedulers.newThread()) // Каждый раз создается новый поток для каждой задачи
+        .subscribeOn(Schedulers.newThread()) // Управляет тем, на каком потоке начнётся выполнение всей цепочки, работает только один раз
 
     val observer: Observer<String> = object : Observer<String> {
         override fun onSubscribe(d: Disposable) {
@@ -130,7 +153,7 @@ fun newThreadSchedulerExample() {
 // в одном потоке, и они не могут быть выполнены параллельно.
 fun singleSchedulerExample() {
     val observable: Observable<String> = Observable.just("Task 1", "Task 2")
-        .subscribeOn(Schedulers.single()) // Все задачи выполняются в одном потоке, поочередно
+        .subscribeOn(Schedulers.single()) // Управляет тем, на каком потоке начнётся выполнение всей цепочки, работает только один раз
 
     val observer: Observer<String> = object : Observer<String> {
         override fun onSubscribe(d: Disposable) {

@@ -29,26 +29,26 @@ fun ThreadExampleWithSchedulers() {
         .observeOn(Schedulers.computation()) // observeOn переключает поток для следующих операций.
         .map(object : Function<Int, Int> {
             override fun apply(value: Int): Int {
-                println("Map: обрабатываем $value на потоке ${Thread.currentThread().name}")
+                println("Map: we are processing $value ${Thread.currentThread().name}")
                 return value * 10
             }
         })
         .observeOn(Schedulers.single()) // подписчик получит данные на single-потоке
         .subscribe(object : Observer<Int> {
             override fun onSubscribe(d: Disposable) {
-                println("Observer: Подписка на потоке ${Thread.currentThread().name}")
+                println("Observer: Subscribe to the stream ${Thread.currentThread().name}")
             }
 
             override fun onNext(item: Int) {
-                println("Observer: Получено значение $item на потоке ${Thread.currentThread().name}")
+                println("Observer: Value received $item ${Thread.currentThread().name}")
             }
 
             override fun onError(e: Throwable) {
-                println("Observer: Ошибка - ${e.message}")
+                println("Observer: Error - ${e.message}")
             }
 
             override fun onComplete() {
-                println("Observer: Завершено на потоке ${Thread.currentThread().name}")
+                println("Observer: Completed on stream ${Thread.currentThread().name}")
             }
         })
 

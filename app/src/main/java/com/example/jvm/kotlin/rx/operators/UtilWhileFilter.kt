@@ -1,4 +1,4 @@
-package com.example.jvm.kotlin.rx
+package com.example.jvm.kotlin.rx.operators
 
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observer
@@ -7,7 +7,6 @@ import io.reactivex.rxjava3.disposables.Disposable
 fun main() {
     takeUntilObservable()
     takeWhileObservable()
-    takeWhileWithConditionObservable()
     skipWhileObservable()
     skipUntilObservable()
 }
@@ -74,38 +73,6 @@ fun takeWhileObservable() {
     }
 
     observable.takeWhile { it < 3 } // Эмиттируем значения, пока они меньше 3
-        .subscribe(observer)
-}
-
-//takeWhile с условием: эмиттируем значения, пока выполняется условие
-fun takeWhileWithConditionObservable() {
-    val observable: Observable<Int> = Observable.create<Int> {
-        it.onNext(1)
-        it.onNext(2)
-        it.onNext(3)
-        it.onNext(4)
-        it.onComplete()
-    }
-
-    val observer: Observer<Int> = object : Observer<Int> {
-        override fun onComplete() {
-            println("Values emitted while condition was true")
-        }
-
-        override fun onNext(item: Int) {
-            println("Received: $item")
-        }
-
-        override fun onError(e: Throwable) {
-            println("Error: ${e.message}")
-        }
-
-        override fun onSubscribe(d: Disposable) {
-            println("Subscribed to Observable with takeWhile with condition")
-        }
-    }
-
-    observable.takeWhile { it != 3 } // Эмиттируем значения, пока не встретится число 3
         .subscribe(observer)
 }
 
